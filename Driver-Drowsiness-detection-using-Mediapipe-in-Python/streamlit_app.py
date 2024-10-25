@@ -7,7 +7,7 @@ from streamlit_webrtc import VideoHTMLAttributes, webrtc_streamer
 
 from audio_handling import AudioFrameHandler
 from drowsy_detection import VideoFrameHandler
-from ads import css_string
+# from ads import css_string
 
 
 # Define the audio file to use.
@@ -68,14 +68,14 @@ def audio_frame_callback(frame: av.AudioFrame):
 
 
 # https://github.com/whitphx/streamlit-webrtc/blob/main/streamlit_webrtc/config.py
-
-
 with col1:
     ctx = webrtc_streamer(
         key="drowsiness-detection",
+        # key = "local-stream",
         video_frame_callback=video_frame_callback,
         audio_frame_callback=audio_frame_callback,
-        rtc_configuration={"iceServers": [{"urls": ["stun:stun.l.google.com:19302"]}]},  # Add this to config for cloud deployment.
+        # rtc_configuration={"iceServers": [{"urls": ["stun:stun.l.google.com:19302"]}]},  # Add this to config for cloud deployment.
         media_stream_constraints={"video": {"height": {"ideal": 480}}, "audio": True},
+        # media_stream_constraints={"video": True, "audio": True},
         video_html_attrs=VideoHTMLAttributes(autoPlay=True, controls=False, muted=False),
     )

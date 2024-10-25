@@ -136,7 +136,7 @@ class VideoFrameHandler:
 
         # To improve performance,
         # mark the frame as not writeable to pass by reference.
-        frame.flags.writeable = False
+        # frame.flags.writeable = False
         frame_h, frame_w, _ = frame.shape
 
         DROWSY_TIME_txt_pos = (10, int(frame_h // 2 * 1.7))
