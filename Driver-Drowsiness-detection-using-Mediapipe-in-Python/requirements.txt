@@ -7,3 +7,4 @@ mediapipe
 streamlit==1.13.0
 streamlit_webrtc==0.43.4
 streamlit-nested-layout==0.1.1
+altair==4.2.2

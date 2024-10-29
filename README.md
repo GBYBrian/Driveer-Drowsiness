@@ -40,9 +40,19 @@ The heart of this project lies in the implementation of MediaPipe, a powerful op
    ```
 5. Run the file using the code
    ```bash
-   python drowsy_detection.py
+   streamlit run streamlit_app.py
    ```
 
+## **Description**
+- learning folder: Quick Start Guide for the Visualization Tool Streamlit
+- Blog-Code-Demo.ipynb: Quick Start Guide and Explanation for the meidapipe
+- drowsy_detection.py: 
+  - core code for the project
+  - the detection process
+  - the execution of the detection algorithms
+- Blog-Code-Demo.ipynb: The explanation for the drowsy_detection.py file
+- streamlit_app.py: The final file we run used Streamlit to build an interactive front-end interface for drowsy detection
+  
 ## **Contribution**
 
 Contributions are welcome! If you have any ideas, suggestions, or bug reports, feel free to open an issue or submit a pull request.

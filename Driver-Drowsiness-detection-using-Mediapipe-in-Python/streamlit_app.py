@@ -3,7 +3,7 @@ import av
 import threading
 import streamlit as st
 import streamlit_nested_layout
-from streamlit_webrtc import VideoHTMLAttributes, webrtc_streamer
+from streamlit_webrtc import VideoHTMLAttributes, webrtc_streamer # 在streamlit应用中实现webrtc功能，支持试试音视流
 
 from audio_handling import AudioFrameHandler
 from drowsy_detection import VideoFrameHandler
@@ -22,23 +22,24 @@ st.set_page_config(
 )
 
 
-col1, col2 = st.columns(spec=[6, 2], gap="medium")
+col1, col2 = st.columns(spec=[6, 2], gap="medium") # 第一列占6个单位，第二列占2个单位，总宽度为8
 
 with col1:
     st.title("Drowsiness Detection!!!🥱😪😴")
     with st.container():
         c1, c2 = st.columns(spec=[1, 1])
         with c1:
-            # The amount of time (in seconds) to wait before sounding the alarm.
+            # The amount of time (in seconds) to wait before sounding the alarm.警报前的等待时间
+            # 在第一列c1中，添加一个滑块，用于设置等待时间0-5，默认1，步长0，25
             WAIT_TIME = st.slider("Seconds to wait before sounding alarm:", 0.0, 5.0, 1.0, 0.25)
-
+            
         with c2:
-            # Lowest valid value of Eye Aspect Ratio. Ideal values [0.15, 0.2].
+            # Lowest valid value of Eye Aspect Ratio. Ideal values [0.15, 0.2].EAR阈值
             EAR_THRESH = st.slider("Eye Aspect Ratio threshold:", 0.0, 0.4, 0.18, 0.01)
 
 thresholds = {
-    "EAR_THRESH": EAR_THRESH,
-    "WAIT_TIME": WAIT_TIME,
+    "EAR_THRESH": EAR_THRESH, # 判断用户是否处于困倦状态的阈值
+    "WAIT_TIME": WAIT_TIME, # 检测到困倦后，出发警报前的等待时间
 }
 
 # For streamlit-webrtc

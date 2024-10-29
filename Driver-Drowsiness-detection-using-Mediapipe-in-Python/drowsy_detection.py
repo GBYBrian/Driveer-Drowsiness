@@ -81,7 +81,7 @@ def plot_eye_landmarks(frame, left_lm_coordinates, right_lm_coordinates, color):
             for coord in lm_coordinates:
                 cv2.circle(frame, coord, 2, color, -1)
 
-    frame = cv2.flip(frame, 1)
+    frame = cv2.flip(frame, 1) # 对图像进行翻转
     return frame
 
 
@@ -104,21 +104,22 @@ class VideoFrameHandler:
 
         # Used for coloring landmark points.
         # Its value depends on the current EAR value.
-        self.RED = (0, 0, 255)  # BGR
-        self.GREEN = (0, 255, 0)  # BGR
+        self.RED = (0, 0, 255)  # BGR 用于指示警告状态或者疲倦状态
+        self.GREEN = (0, 255, 0)  # BGR 用于指示正常状态
 
         # Initializing Mediapipe FaceMesh solution pipeline
-        self.facemesh_model = get_mediapipe_app()
+        self.facemesh_model = get_mediapipe_app() # 设置模型并准备进行面部特征点的检测
 
         # For tracking counters and sharing states in and out of callbacks.
+        # 状态追踪，维护与疲劳检测相关的状态信息
         self.state_tracker = {
             "start_time": time.perf_counter(),
             "DROWSY_TIME": 0.0,  # Holds the amount of time passed with EAR < EAR_THRESH
             "COLOR": self.GREEN,
-            "play_alarm": False,
+            "play_alarm": False, # 是否播放警告
         }
 
-        self.EAR_txt_pos = (10, 30)
+        self.EAR_txt_pos = (10, 30) # EAR指标的位置
 
     def process(self, frame: np.array, thresholds: dict):
         """
@@ -139,41 +140,43 @@ class VideoFrameHandler:
         # frame.flags.writeable = False
         frame_h, frame_w, _ = frame.shape
 
-        DROWSY_TIME_txt_pos = (10, int(frame_h // 2 * 1.7))
-        ALM_txt_pos = (10, int(frame_h // 2 * 1.85))
+        DROWSY_TIME_txt_pos = (10, int(frame_h // 2 * 1.7)) # 疲倦文本的位置
+        ALM_txt_pos = (10, int(frame_h // 2 * 1.85))# 警报文本的位置 
 
-        results = self.facemesh_model.process(frame)
+        results = self.facemesh_model.process(frame) # 使用mp进行处理
 
         if results.multi_face_landmarks:
             landmarks = results.multi_face_landmarks[0].landmark
             EAR, coordinates = calculate_avg_ear(landmarks, self.eye_idxs["left"], self.eye_idxs["right"], frame_w, frame_h)
+            # 在帧上绘制眼睛的关键点，颜色基于当前状态
             frame = plot_eye_landmarks(frame, coordinates[0], coordinates[1], self.state_tracker["COLOR"])
 
             if EAR < thresholds["EAR_THRESH"]:
-
+                # 累计疲劳的时间
                 # Increase DROWSY_TIME to track the time period with EAR less than the threshold
                 # and reset the start_time for the next iteration.
-                end_time = time.perf_counter()
+                end_time = time.perf_counter() # 记录当前的时间
 
                 self.state_tracker["DROWSY_TIME"] += end_time - self.state_tracker["start_time"]
                 self.state_tracker["start_time"] = end_time
                 self.state_tracker["COLOR"] = self.RED
 
+                # 若累积疲劳时间超过设置的等待时间，则设置播放警报，并在帧上绘制警报文本
                 if self.state_tracker["DROWSY_TIME"] >= thresholds["WAIT_TIME"]:
                     self.state_tracker["play_alarm"] = True
                     plot_text(frame, "WAKE UP! WAKE UP", ALM_txt_pos, self.state_tracker["COLOR"])
-
+            # 正常状态，重置时间
             else:
                 self.state_tracker["start_time"] = time.perf_counter()
                 self.state_tracker["DROWSY_TIME"] = 0.0
                 self.state_tracker["COLOR"] = self.GREEN
                 self.state_tracker["play_alarm"] = False
-
+            # 绘制EAR和DROWSY文本信息
             EAR_txt = f"EAR: {round(EAR, 2)}"
             DROWSY_TIME_txt = f"DROWSY: {round(self.state_tracker['DROWSY_TIME'], 3)} Secs"
             plot_text(frame, EAR_txt, self.EAR_txt_pos, self.state_tracker["COLOR"])
             plot_text(frame, DROWSY_TIME_txt, DROWSY_TIME_txt_pos, self.state_tracker["COLOR"])
-
+        # 处理未检测到面部的情况
         else:
             self.state_tracker["start_time"] = time.perf_counter()
             self.state_tracker["DROWSY_TIME"] = 0.0
