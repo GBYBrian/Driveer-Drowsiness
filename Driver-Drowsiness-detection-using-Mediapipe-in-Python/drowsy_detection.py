@@ -188,4 +188,3 @@ class VideoFrameHandler:
 
         return frame, self.state_tracker["play_alarm"]
 
-## I am just a testing code
