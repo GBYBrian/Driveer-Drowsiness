@@ -193,14 +193,13 @@ class VideoFrameHandler:
             frame = plot_eye_landmarks(frame, coordinates[0], coordinates[1], self.state_tracker["COLOR"])
             # 在帧上绘制嘴巴的关键点，颜色基于当前的状态
             frame = plot_month_landmarks(frame, coords_points, self.state_tracker["M_COLOR"])
-
-            end_time = time.perf_counter() # 记录当前的时间
+            
             # 对眼睛疲劳状态，疲劳时间的追踪检测
             if EAR < thresholds["EAR_THRESH"]:
                 # 累计疲劳的时间
                 # Increase DROWSY_TIME to track the time period with EAR less than the threshold
                 # and reset the start_time for the next iteration.
-                
+                end_time = time.perf_counter() # 记录当前的时间
                 self.state_tracker["DROWSY_TIME"] += end_time - self.state_tracker["start_time"]
                 self.state_tracker["start_time"] = end_time
                 self.state_tracker["COLOR"] = self.RED
@@ -245,8 +244,8 @@ class VideoFrameHandler:
 
             # 对打哈欠动作，以及持续时长的追踪检测
             if mouth_ratio > thresholds["MOU_THRESH"]:
-                yawn_end_time = end_time
-                self.state_tracker["YAWN_TIME"] = yawn_end_time - self.state_tracker["yawn_start_time"]
+                yawn_end_time = time.perf_counter()
+                self.state_tracker["YAWN_TIME"] += yawn_end_time - self.state_tracker["yawn_start_time"]
                 self.state_tracker["yawn_start_time"] = yawn_end_time
                 self.state_tracker["M_COLOR"] = self.RED
 
