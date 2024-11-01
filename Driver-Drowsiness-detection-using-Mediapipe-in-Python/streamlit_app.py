@@ -36,10 +36,12 @@ with col1:
         with c2:
             # Lowest valid value of Eye Aspect Ratio. Ideal values [0.15, 0.2].EAR阈值
             EAR_THRESH = st.slider("Eye Aspect Ratio threshold:", 0.0, 0.4, 0.18, 0.01)
+            MOU_THRSH = st.slider("Mouth Aspect Ratio threshold",0.0, 0.4, 0.2, 0.01)
 
 thresholds = {
     "EAR_THRESH": EAR_THRESH, # 判断用户是否处于困倦状态的阈值
     "WAIT_TIME": WAIT_TIME, # 检测到困倦后，出发警报前的等待时间
+    "MOU_THRESH": MOU_THRSH # 嘴巴张开的程度判定为打哈欠的阈值
 }
 
 # For streamlit-webrtc
