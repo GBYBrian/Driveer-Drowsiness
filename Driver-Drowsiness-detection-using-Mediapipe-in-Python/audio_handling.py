@@ -1,14 +1,16 @@
 import av
 import numpy as np
 from pydub import AudioSegment
-
+import os
 
 class AudioFrameHandler:
     """To play/pass custom audio based on some event"""
 
-    def __init__(self, sound_file_path: str = ""):
+    # def __init__(self, sound_file_path: str = ""):
+    def __init__(self):
 
-        self.custom_audio = AudioSegment.from_file(file=sound_file_path, format="wav")
+        sound_file_path = os.path.join("audio","wake_up.wav")
+        self.custom_audio = AudioSegment.from_file(file=sound_file_path)
         self.custom_audio_len = len(self.custom_audio)
 
         self.ms_per_audio_segment: int = 20
@@ -17,6 +19,10 @@ class AudioFrameHandler:
         self.play_state_tracker: dict = {"curr_segment": -1}  # Currently playing segment
         self.audio_segments_created: bool = False
         self.audio_segments: list = []
+
+    def update_audio_file_path(self, sound_file_path: str= ""):
+        self.custom_audio = AudioSegment.from_file(file=sound_file_path, format="wav")
+        self.custom_audio_len = len(self.custom_audio)
 
     def prepare_audio(self, frame: av.AudioFrame):
         raw_samples = frame.to_ndarray()
@@ -51,8 +57,9 @@ class AudioFrameHandler:
         For eg. playing a notification based on some event.
         """
 
-        if not self.audio_segments_created:
-            self.prepare_audio(frame)
+        # if not self.audio_segments_created:
+        #     self.prepare_audio(frame)
+        self.prepare_audio(frame)
 
         raw_samples = frame.to_ndarray()
         _curr_segment = self.play_state_tracker["curr_segment"]

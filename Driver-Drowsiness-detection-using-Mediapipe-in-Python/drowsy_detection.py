@@ -148,12 +148,13 @@ class VideoFrameHandler:
             "start_time": time.perf_counter(),
             "DROWSY_TIME": 0.0,  # Holds the amount of time passed with EAR < EAR_THRESH
             "COLOR": self.GREEN,
+            "play_eye_alarm": False,
 
             "yawn_start_time": time.perf_counter(),
             "YAWN_TIME": 0.0, # Holds the amount of time passed with yawn_on(mouth_ratio > 0.2)
             "yawn_on":False,
             "M_COLOR": self.GREEN,
-            "play_alarm": False, # 是否播放警告
+            "play_mouth_alarm": False, # 是否播放警告
         }
 
         self.EAR_txt_pos = (10, 30) # EAR指标的位置
@@ -206,14 +207,14 @@ class VideoFrameHandler:
 
                 # 若累积疲劳时间超过设置的等待时间，则设置播放警报，并在帧上绘制警报文本
                 if self.state_tracker["DROWSY_TIME"] >= thresholds["WAIT_TIME"]:
-                    self.state_tracker["play_alarm"] = True
+                    self.state_tracker["play_eye_alarm"] = True
                     plot_text(frame, "WAKE UP! WAKE UP", ALM_txt_pos, self.state_tracker["COLOR"])
             # 正常状态，重置时间
             else:
                 self.state_tracker["start_time"] = time.perf_counter()
                 self.state_tracker["DROWSY_TIME"] = 0.0
                 self.state_tracker["COLOR"] = self.GREEN
-                self.state_tracker["play_alarm"] = False
+                self.state_tracker["play_eye_alarm"] = False
             # 绘制EAR和DROWSY文本信息
             EAR_txt = f"EAR: {round(EAR, 2)}"
             DROWSY_TIME_txt = f"DROWSY: {round(self.state_tracker['DROWSY_TIME'], 3)} Secs"
@@ -251,13 +252,13 @@ class VideoFrameHandler:
 
                 # 打哈欠时间超过2秒，播放warn,并绘制文本
                 if self.state_tracker["YAWN_TIME"] > 2.:
-                    self.state_tracker["play_alarm"] = True
+                    self.state_tracker["play_mouth_alarm"] = True
                     plot_text(frame, "Are you tried!?", ALM_txt_pos, self.state_tracker["COLOR"])
             else:
                 self.state_tracker["yawn_start_time"] = time.perf_counter()
                 self.state_tracker["YAWN_TIME"] = 0.0
                 self.state_tracker["M_COLOR"] = self.GREEN
-                self.state_tracker["play_alarm"] = False
+                self.state_tracker["play_mouth_alarm"] = False
 
             MOUTH_txt = f"MOUTH: {round(mouth_ratio,2)}"
             YAWN_TIME = f"YAWN: {round(self.state_tracker['YAWN_TIME'], 3)} Secs"
@@ -273,10 +274,10 @@ class VideoFrameHandler:
             self.state_tracker["YAWN_TIME"] = 0.0
             self.state_tracker["COLOR"] = self.GREEN
             self.state_tracker["M_COLOR"] = self.GREEN
-            self.state_tracker["play_alarm"] = False
-
+            self.state_tracker["play_eye_alarm"] = False
+            self.state_tracker["play_mouth_alarm"] = False
             # Flip the frame horizontally for a selfie-view display.
             frame = cv2.flip(frame, 1)
 
-        return frame, self.state_tracker["play_alarm"]
+        return frame, self.state_tracker["play_eye_alarm"], self.state_tracker["play_mouth_alarm"]
 

@@ -11,8 +11,8 @@ from drowsy_detection import VideoFrameHandler
 
 
 # Define the audio file to use.
-alarm_file_path = os.path.join("audio", "wake_up.wav")
-
+eye_alarm_file_path = os.path.join("audio", "wake_up.wav")
+mouth_alarm_file_path = os.path.join("audio", "are_you_tried.wav")
 # Streamlit Components
 st.set_page_config(
     page_title="Drowsiness Detection ",
@@ -46,27 +46,40 @@ thresholds = {
 
 # For streamlit-webrtc
 video_handler = VideoFrameHandler()
-audio_handler = AudioFrameHandler(sound_file_path=alarm_file_path)
+audio_handler = AudioFrameHandler()
 
 lock = threading.Lock()  # For thread-safe access & to prevent race-condition.
-shared_state = {"play_alarm": False}
+shared_state = {"play_eye_alarm": False,
+                "play_mouth_alarm": False}
 
 
 def video_frame_callback(frame: av.VideoFrame):
     frame = frame.to_ndarray(format="bgr24")  # Decode and convert frame to RGB
 
-    frame, play_alarm = video_handler.process(frame, thresholds)  # Process frame
+    frame, play_eye_alarm, play_mouth_alarm = video_handler.process(frame, thresholds)  # Process frame
     with lock:
-        shared_state["play_alarm"] = play_alarm  # Update shared state
+        shared_state["play_eye_alarm"] = play_eye_alarm  # Update shared state
+        shared_state["play_mouth_alarm"] = play_mouth_alarm
 
     return av.VideoFrame.from_ndarray(frame, format="bgr24")  # Encode and return BGR frame
 
 
 def audio_frame_callback(frame: av.AudioFrame):
     with lock:  # access the current “play_alarm” state
-        play_alarm = shared_state["play_alarm"]
+        play_eye_alarm = shared_state["play_eye_alarm"]
+        play_mouth_alarm = shared_state["play_mouth_alarm"]
+    # if play_eye_alarm == True:
+    #     audio_handler.update_audio_file_path(eye_alarm_file_path)
+    #     new_frame: av.AudioFrame = audio_handler.process(frame, play_sound=play_eye_alarm) # 通过play_sound即play_alarm状态来执行报警器
+    # else:
+    #     new_frame: av.AudioFrame = audio_handler.process(frame, False)
+    if play_eye_alarm == True:
+        audio_handler.update_audio_file_path(eye_alarm_file_path)
+    new_frame: av.AudioFrame = audio_handler.process(frame, play_sound=play_eye_alarm) # 通过play_sound即play_alarm状态来执行报警器
 
-    new_frame: av.AudioFrame = audio_handler.process(frame, play_sound=play_alarm)
+    if play_mouth_alarm == True:
+        audio_handler.update_audio_file_path(mouth_alarm_file_path)
+    new_frame: av.AudioFrame = audio_handler.process(frame, play_sound=play_mouth_alarm) # 通过play_sound即play_alarm状态来执行报警器
     return new_frame
 
 
