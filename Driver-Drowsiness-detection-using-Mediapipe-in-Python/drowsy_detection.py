@@ -132,12 +132,13 @@ class VideoFrameHandler:
         }
 
         # mouth chosen landmarks
-        self.mouth_idxs = [13,14,78,324]
+        self.mouth_idxs = [0, 13, 14, 61, 291, 78]
 
         # Used for coloring landmark points.
         # Its value depends on the current EAR value.
         self.RED = (0, 0, 255)  # BGR 用于指示警告状态或者疲倦状态
         self.GREEN = (0, 255, 0)  # BGR 用于指示正常状态
+        self.YELLOW = (0,255,255) # 指示打哈欠的疲倦状态
 
         # Initializing Mediapipe FaceMesh solution pipeline
         self.facemesh_model = get_mediapipe_app() # 设置模型并准备进行面部特征点的检测
@@ -147,7 +148,7 @@ class VideoFrameHandler:
         self.state_tracker = {
             "start_time": time.perf_counter(),
             "DROWSY_TIME": 0.0,  # Holds the amount of time passed with EAR < EAR_THRESH
-            "COLOR": self.GREEN,
+            "E_COLOR": self.GREEN,
             "play_eye_alarm": False,
 
             "yawn_start_time": time.perf_counter(),
@@ -191,7 +192,7 @@ class VideoFrameHandler:
             mouth_ratio, coords_points = calculate_mouth_ratio(landmarks,self.mouth_idxs, frame_w, frame_h)
             
             # 在帧上绘制眼睛的关键点，颜色基于当前状态
-            frame = plot_eye_landmarks(frame, coordinates[0], coordinates[1], self.state_tracker["COLOR"])
+            frame = plot_eye_landmarks(frame, coordinates[0], coordinates[1], self.state_tracker["E_COLOR"])
             # 在帧上绘制嘴巴的关键点，颜色基于当前的状态
             frame = plot_month_landmarks(frame, coords_points, self.state_tracker["M_COLOR"])
             
@@ -203,23 +204,23 @@ class VideoFrameHandler:
                 end_time = time.perf_counter() # 记录当前的时间
                 self.state_tracker["DROWSY_TIME"] += end_time - self.state_tracker["start_time"]
                 self.state_tracker["start_time"] = end_time
-                self.state_tracker["COLOR"] = self.RED
+                self.state_tracker["E_COLOR"] = self.RED
 
                 # 若累积疲劳时间超过设置的等待时间，则设置播放警报，并在帧上绘制警报文本
                 if self.state_tracker["DROWSY_TIME"] >= thresholds["WAIT_TIME"]:
                     self.state_tracker["play_eye_alarm"] = True
-                    plot_text(frame, "WAKE UP! WAKE UP", ALM_txt_pos, self.state_tracker["COLOR"])
+                    plot_text(frame, "WAKE UP! WAKE UP", ALM_txt_pos, self.state_tracker["E_COLOR"])
             # 正常状态，重置时间
             else:
                 self.state_tracker["start_time"] = time.perf_counter()
                 self.state_tracker["DROWSY_TIME"] = 0.0
-                self.state_tracker["COLOR"] = self.GREEN
+                self.state_tracker["E_COLOR"] = self.GREEN
                 self.state_tracker["play_eye_alarm"] = False
             # 绘制EAR和DROWSY文本信息
             EAR_txt = f"EAR: {round(EAR, 2)}"
             DROWSY_TIME_txt = f"DROWSY: {round(self.state_tracker['DROWSY_TIME'], 3)} Secs"
-            plot_text(frame, EAR_txt, self.EAR_txt_pos, self.state_tracker["COLOR"])
-            plot_text(frame, DROWSY_TIME_txt, DROWSY_TIME_txt_pos, self.state_tracker["COLOR"])
+            plot_text(frame, EAR_txt, self.EAR_txt_pos, self.state_tracker["E_COLOR"])
+            plot_text(frame, DROWSY_TIME_txt, DROWSY_TIME_txt_pos, self.state_tracker["E_COLOR"])
 
             # # 对打哈欠动作，以及持续时长的追踪检测
             # if mouth_ratio > thresholds["MOU_THRESH"]:
@@ -248,19 +249,19 @@ class VideoFrameHandler:
                 yawn_end_time = time.perf_counter()
                 self.state_tracker["YAWN_TIME"] += yawn_end_time - self.state_tracker["yawn_start_time"]
                 self.state_tracker["yawn_start_time"] = yawn_end_time
-                self.state_tracker["M_COLOR"] = self.RED
+                self.state_tracker["M_COLOR"] = self.YELLOW
 
                 # 打哈欠时间超过2秒，播放warn,并绘制文本
                 if self.state_tracker["YAWN_TIME"] > 2.:
                     self.state_tracker["play_mouth_alarm"] = True
-                    plot_text(frame, "Are you tried!?", ALM_txt_pos, self.state_tracker["COLOR"])
+                    plot_text(frame, "Are you tried!?", ALM_txt_pos, self.state_tracker["M_COLOR"])
             else:
                 self.state_tracker["yawn_start_time"] = time.perf_counter()
                 self.state_tracker["YAWN_TIME"] = 0.0
                 self.state_tracker["M_COLOR"] = self.GREEN
                 self.state_tracker["play_mouth_alarm"] = False
 
-            MOUTH_txt = f"MOUTH: {round(mouth_ratio,2)}"
+            MOUTH_txt = f"mouth: {round(mouth_ratio,2)}"
             YAWN_TIME = f"YAWN: {round(self.state_tracker['YAWN_TIME'], 3)} Secs"
             plot_text(frame, MOUTH_txt, self.YAWN_on_txt_pos, self.state_tracker["M_COLOR"])
             plot_text(frame, YAWN_TIME, WARN_txt_pos, self.state_tracker["M_COLOR"])
