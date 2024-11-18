@@ -52,6 +52,11 @@ lock = threading.Lock()  # For thread-safe access & to prevent race-condition.
 shared_state = {"play_eye_alarm": False,
                 "play_mouth_alarm": False}
 
+# av模块：av是一个py库，用于处理音频和视频数据，提供了对多种媒体格式的支持，并允许用户读取，写入和处理音视频流
+# av.VideoFrame: av.VideoFrame是av模块中的一个类，表示视频帧
+
+# 该函数接受一个av.VideoFrame类型的参数frame,这是一个表示视频帧的对象
+# video_frame_callback是一个回调函数，通常用于处理从视频流中读取的每一帧的数据
 
 def video_frame_callback(frame: av.VideoFrame):
     frame = frame.to_ndarray(format="bgr24")  # Decode and convert frame to RGB
